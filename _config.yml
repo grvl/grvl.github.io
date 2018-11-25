@@ -10,8 +10,8 @@ title: Free Wheels
 email: your-email@domain.com
 description: > # this means to ignore newlines until "baseurl:"
   Studies on accessibility resources in the city of São Paulo (Brazil)
-baseurl: "/apps/acessibilidade" # the subpath of your site, e.g. /blog
-url: "http://interscity.org" # the base hostname & protocol for your site
+# baseurl: "/apps/acessibilidade" # the subpath of your site, e.g. /blog
+# url: "http://interscity.org" # the base hostname & protocol for your site
 twitter_username: jekyllrb
 github_username:  jekyll
 
