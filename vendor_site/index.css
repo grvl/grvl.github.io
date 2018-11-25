@@ -1,0 +1,11 @@
+.mdl-card{
+	width: 100%;
+}
+
+.title {
+	text-align: center;
+}
+
+#mapid {
+	height: 400px;
+}

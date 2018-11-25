@@ -1,0 +1,293 @@
+<div id="map" class="step-3">
+  <div class="wrapper">
+
+    <div class="row bg-light justify-content-center p-2">
+      <h1>
+        Explore os dados escolhendo uma região no mapa
+        <i class="fa fa-map-marker" aria-hidden="true"></i>
+      </h1>
+      <h4>
+        <center>Clique <a href="index.html#map">aqui</a> para visualizar os recursos de acessibilidade dos distritos da cidade de São Paulo!</center>
+
+
+        <form action="http://127.0.0.1:5000/pessoas" method="get" target="POPUPW"
+            onsubmit="POPUPW = window.open('about:blank','POPUPW',
+           'width=900,height=600');">
+          Ou pesquise por um endereço e raio para visualizar o número de pessoas aproximado dentro deste raio: <input type="text" name="q">
+          <select name="dist">
+            <option value="1">1 KM</option>
+            <option value="2">2 KM</option>
+            <option value="3">3 KM</option>
+            <option value="4">4 KM</option>
+            <option value="5">5 KM</option>
+            <option value="6">6 KM</option>
+            <option value="7">7 KM</option>
+            <option value="8">8 KM</option>
+            <option value="9">9 KM</option>
+            <option value="10">10 KM</option>
+          </select>
+          <input type="submit" value="Submit">
+        </form>
+      </h4>
+      <div class="row">
+        <div class="map-box col-md-8">
+          <div id="mapid" class="mapid"></div>
+        </div>
+
+        <div class="radar-box col-md-4">
+          <div class="row">
+            <div class="region-box col-md-12">
+              - <!-- District name goes here. -->
+            </div>
+
+            <div class="radar-statistics col-md-12">
+
+              <div class="row">
+                <div class="score-general col-md-12">
+                  <div class="title col-md-12">
+                    <span>
+                      Alguma dificuldade (geral)
+                    </span>
+                  </div>
+                  <div class="row">
+                    <div class="grade">
+                      <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                      <span class="score-dificuldade_geral"> - </span>
+                    </div>
+
+                    <div class="rank-position">
+                      <i class="icon-chair"></i>
+                      <span class="ranking-dificuldade_geral"> - </span>
+                    </div>
+                  </div>
+                </div>
+
+                  <div class="radar-chart-body col-md-12" align="center">
+                    <!-- <div id="chart">
+                    </div> -->
+                  </div>
+
+                <div class="col-md-12 stats">
+
+                  <div class="bla">
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row">
+                        <div class="title col-md-12">
+                          <span>
+                            Alguma dificuldade (Distribuição)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-dificuldade"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-dificuldade"> - </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row xd">
+                        <div class="title">
+                          <span>
+                            Número de beneficiários do BPC (SMPED)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-smped"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-smped"> - </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bla">
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row">
+                        <div class="title col-md-12">
+                          <span>
+                            Dif. de enxergar (Geral)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-enxergar_geral"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-enxergar_geral"> - </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row xd">
+                        <div class="title">
+                          <span>
+                            Dif. de enxergar (Distribuição)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-enxergar"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-enxergar"> - </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bla">
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row">
+                        <div class="title col-md-12">
+                          <span>
+                            Dif. de ouvir (Geral)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-ouvir_geral"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-ouvir_geral"> - </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row xd">
+                        <div class="title">
+                          <span>
+                            Dif. de ouvir (Distribuição)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-ouvir"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-ouvir"> - </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bla">
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row">
+                        <div class="title col-md-12">
+                          <span>
+                            Dif. de caminhar (Geral)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-caminhar_geral"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-caminhar_geral"> - </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row xd">
+                        <div class="title">
+                          <span>
+                            Dif. de caminhar (Distribuição)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-caminhar"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-caminhar"> - </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bla">
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row">
+                        <div class="title col-md-12">
+                          <span>
+                            Def. intelectual (Geral)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-intelectual_geral"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-intelectual_geral"> - </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="score-cards left-card col-md-6">
+                      <div class="row xd">
+                        <div class="title">
+                          <span>
+                            Def. intelectual (Distribuição)
+                          </span>
+                        </div>
+
+                        <div class="grade">
+                          <!-- <i class="fa fa-trophy" aria-hidden="true"></i> -->
+                          <span class="score-intelectual"> - </span>
+                        </div>
+
+                        <div class="rank-position">
+                          <i class="icon-chair"></i>
+                          <span class="ranking-intelectual"> - </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="js/map-ibge.js"></script>
+<script type="text/javascript" src="js/script-ibge.js"></script>

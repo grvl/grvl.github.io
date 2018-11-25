@@ -1,0 +1,200 @@
+
+/*
+-------------------------------
+STEP 2
+-------------------------------
+*/
+
+/*
+-------------------------------
+STEP 2
+-------------------------------
+*/
+
+.step-2 .card{
+  margin: 2em 2em 2em 2em;
+  max-width: 100%;
+}
+
+.step-2 .card-body {
+  display: flex;
+  align-items: center;
+}
+
+.step-2 .card-icon {
+  font-size: 6em;
+  margin-right: 0.4em;
+}
+
+.fat-boy {
+  width: 0.78em;
+}
+
+/*
+-------------------------------
+STEP 3
+-------------------------------
+*/
+
+.map-box, .mapid {
+  min-height: 90vh;
+}
+
+.score-general .icon-podium {
+  content: url('../img/icon-podium.png');
+  height: 1.0em;
+  width: 1.5em;
+}
+
+.score-cards .icon-podium {
+  content: url('../img/icon-podium.png');
+  height: 1em;
+  width: 1.5em;
+}
+
+.score-general .icon-chair {
+  content: url('../img/icon-chair.png');
+  height: 1.0em;
+  width: 1.5em;
+}
+
+.score-cards .icon-chair {
+  content: url('../img/icon-chair.png');
+  height: 1em;
+  width: 1.5em;
+}
+
+.step-3 {
+  background: lightgray;
+}
+
+.step-3 .mb-3 {
+  margin: 0px !important;
+}
+
+.step-3 h1 {
+  padding: 0.2em 1em 0.2em 1em;
+}
+
+.step-3 .explore-title {
+  width: fit-content;
+  margin: 1em;
+  background: lightgray;
+  padding: 0px;
+  color: black;
+}
+
+.heading-title {
+  padding: 0.3em;
+  display: flex;
+  justify-content: space-around;
+}
+
+.radar-box {
+  transition: all 1.5s ease;
+  max-height: 80vh;
+}
+
+.radar-box  .row {
+  align-items: center;
+}
+
+
+.region-box {
+  text-align: center;
+  font-size: 2.4vw;
+  font-weight: bold;
+  border-bottom: 2px solid black;
+  margin-bottom: 1px;
+}
+
+.data-explorer {
+  align-items: center;
+  background: white !important;
+  padding: 5px 1px 0px 5px;
+}
+
+.radar-statistics  {
+  text-align: center;
+  transition: all 1.5s ease;
+  min-height: 80vh;
+}
+
+.radar-statistics .row  {
+  height: 100%;
+}
+
+.score-cards .title {
+  border-bottom: 1px solid;
+  width: 100%;
+}
+
+.left-card .title {
+  border-right: 1px solid;
+}
+
+.score-cards {
+  height: 100%;
+  font-size: 1vw;
+}
+
+.score-general .title {
+  font-size: 2.4vw;
+}
+
+.score-general i {
+  font-size: 2.2vw;
+}
+
+.score-general span {
+  font-size: 2.2vw;
+}
+
+.score-general .row {
+  justify-content: center;
+}
+
+.score-general .grade, .rank-position {
+  padding: 0 1vw 0 1vw;
+}
+
+.step-3 .data-explorer {
+  margin-bottom: 1vw;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+body {
+  font-family: 'Cantarell', sans-serif;
+}
+
+.bla {
+  display: flex;
+  width: 100%;
+  margin-top: 2vh;
+}
+
+.score-cards .row {
+  justify-content: center;
+}
+
+.score-cards .grade, .rank-position {
+  padding: 0 1vw 0 1vw;
+}
+
+.points_table {
+  height: 80vh;
+  overflow-y: auto;
+}
+
+#chart {
+  height: 48vh;
+  justify-content: center;
+  width: 100%;
+}
+
+.stats {
+  height: 42vh;
+}

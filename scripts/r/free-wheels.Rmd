@@ -1,0 +1,419 @@
+---
+title: "Panorama de acessibilidade do município de São Paulo"
+author: Victor Mayrink, João Barguil, Thallys Martins, Erik Elias, Izabela Cardoso
+output: 
+  html_document: 
+    highlight: tango
+    number_sections: yes
+    theme: spacelab
+    toc: yes
+    toc_depth: 1
+date: 30/01/2018
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set
+options(scipen=999)
+library("sp")
+library("rgdal")
+library("rgeos")
+library("raster")
+library("geosphere")
+library("maptools")
+library("leaflet")
+library("ggplot2")
+library("ggmap")
+library("mefa")
+library("data.table")
+library("geohash")
+```
+
+```{r utm.converter, include=FALSE, message=FALSE, warning=FALSE}
+proj.string.utm = "+proj=utm +zone=23 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m"
+proj.string.longlat ="+proj=longlat +datum=WGS84"
+toLatLon <- function(utm) {
+  sputm <- SpatialPoints(utm, proj4string=CRS(proj.string.utm))
+  coords <- spTransform(sputm, CRS(proj.string.longlat))@coords
+}
+```
+
+```{r score.scaling, include=FALSE, message=FALSE, warning=FALSE}
+score.scaling <- function(values, revert.scales = F, maxscale = 10) {
+  max.value <- max(values, na.rm = T)
+  min.value <- min(values, na.rm = T)
+  scores <- maxscale * (values - min.value) / (max.value - min.value)
+  if(revert.scales) scores <- maxscale - scores
+  return(scores)
+}
+```
+
+```{r color.scaling, include=FALSE, message=FALSE, warning=FALSE}
+color.ramp <- colorRamp(rgb(c(206, 253, 38), c(63, 211, 165), c(62, 95, 112), maxColorValue = 255))
+color.scale.func <- function(value) {
+  if(is.na(value)) {
+    return("#636466")
+  } else {
+    color <- color.ramp(round(value, 3)/10)
+    return(rgb(color, maxColorValue = 255))
+  }
+}
+```
+
+# Introdução
+
+Este projeto tem como objetivo classificar os bairros da cidade de São Paulo no que se refere à acessibilidade para usuários de cadeiras de rodas. A classificação proposta considera três eixos de avaliação: `topografia`, `mobilidade` e `estabelecimentos comerciais`. Para suportar nossa análise utilizamos dados de diversas fontes, incluindo entidades públicas ([Geosampa](http://geosampa.prefeitura.sp.gov.br/PaginasPublicas/_SBC.aspx), [SPTrans](http://www.sptrans.com.br/)) e privadas ([guiaderodas](https://www.guiaderodas.com), [Scipopulis](https://www.scipopulis.com/))
+
+# Metodologia
+
+## Divisão dos Distritos
+
+Para esta análise, utilizamos a divisão do município de São Paulo em 96 distritos, conforme os dados disponibilizados no portal [Geosampa](http://geosampa.prefeitura.sp.gov.br/PaginasPublicas/_SBC.aspx). O mapa abaixo ilustra a divisão dos distritos:
+
+```{r load.districts, message=FALSE, warning=FALSE}
+districts.utm <- shapefile("./districts/districts.shp", warnPRJ=TRUE)
+proj4string(districts.utm) <- CRS(proj.string.utm)
+districts.utm <- SpatialPolygonsDataFrame(gSimplify(districts.utm, 20), data = districts.utm@data)
+districts.longlat <-  spTransform(districts.utm, CRS(proj.string.longlat))
+
+districts.spdf.longlat <- SpatialPolygonsDataFrame(districts.longlat, data.frame(district=districts.longlat@data$ds_codigo), match.ID=F)
+districts.spdf.utm <- SpatialPolygonsDataFrame(districts.utm, data.frame(district=districts.utm@data$ds_codigo), match.ID=F)
+
+districts.list <- list()
+for(d in districts.longlat$ds_nome) {
+  district.sp = districts.spdf.longlat[districts.longlat$ds_nome == d,]
+  coords <- district.sp@polygons[[1]]@Polygons[[1]]@coords
+  names(coords) <- c("lon", "lat")
+  districts.list[[d]] <- list(
+    "name" = d,
+    "polygon" = coords,
+    "area" = district.sp@polygons[[1]]@Polygons[[1]]@area
+  )
+}
+```
+
+```{r save.comp.dsitricts, message=FALSE, include=FALSE, warning=FALSE}
+districts.longlat@polygons <- districts.longlat@polygons[order(as.numeric(districts.longlat@data$ds_codigo))]
+districts.longlat@data <- read.csv("./final-score.csv")
+districts.longlat@data <- districts.longlat@data[order(districts.longlat@data$ds_codigo),]
+unlink("./districts-simple/", recursive = T)
+writeOGR(obj=districts.longlat, dsn="./districts-simple/", layer="districts", driver="ESRI Shapefile")
+```
+
+```{r show.districts, echo=FALSE}
+basemap <- leaflet(width = "100%") %>% addTiles()
+for(d in districts.list) {
+ basemap <- basemap %>% addPolygons(lng = d$polygon[,1], lat = d$polygon[,2], color = "black", opacity = 1, weight = 2)
+}
+basemap
+```
+
+## Estabelecimentos comerciais
+
+A avaliação deste critério foi realizada com base nos dados cedidos pelo aplicativo [guiaderodas](https://guiaderodas.com). A nota de cada bairro foi definida pela média das notas de todos os estabelecimentos do bairro. Esta avaliação também considerou os estabelecimentos contemplados com o [selo de acessibilidade](http://www3.prefeitura.sp.gov.br/cadlem/secretarias/negocios_juridicos/cadlem/integra.asp?alt=30112004D%20455520000) emitido pela Prefeitura Municipal de São Paulo.
+
+Os distritos com menos de 10 avaliações foram excluídos da análise, pois consideramos que os dados não são suficientes para efeitos de comparação.
+
+```{r}
+venues <- fread("../python/data/estabelecimentos/venues-score.csv")
+
+venues$score <- score.scaling(venues$score)
+
+venues.score <- venues[,.("ds_codigo" = district_id, 
+                          "ds_nome" = district_name,
+                          "venues" = score,
+                          "venues_color" = sapply(score, color.scale.func))]
+```
+
+```{r}
+basemap <- leaflet(width = "100%") %>% addTiles()
+for(d in districts.list) {
+  fillcolor <- color.scale.func(venues.score$venues[venues.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     opacity = 1,
+                                     weight = 2,
+                                     color = "white",
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+## Mobilidade
+
+O acesso à mobilidade acessível foi o segundo eixo de avaliação dos distritos. Neste quesito, cada região foi avaliada levando-se em consideração a facilidade de acesso aos principais modais de transporte:
+
+- Proximidade das estações de metrô e trens urbanos;
+- Proximidade de linhas de ônibus atendidas por veículos acessíveis;
+- Quantidade de vagas reservadas para portadores de necessidades especiais;
+
+### Metrô e trens urbanos
+
+Para classificar os distritos em relação à proximidade de linhas de metrô e trem utilizamos uma metodologia baseada em `regiões de influência`. Cada estação de metrô ou trem possui uma região de influência em forma gaussiana, que mede o grau de proximidade de um ponto do mapa até a estação. Assim, é possível avaliar os distritos utilizando uma malha quadrada onde cada ponto mede o grau de proximidade até a estação de mais próxima.
+
+```{r railway, message=FALSE, warning=FALSE}
+subway <- shapefile("./subway/subway.shp")
+proj4string(subway) <- CRS(proj.string.utm)
+subway <- spTransform(subway, CRS(proj.string.longlat))
+subway.coords <- as.data.frame(subway)
+
+train <- shapefile("./train/train.shp")
+proj4string(train)  <- CRS(proj.string.utm)
+train <- spTransform(train, CRS(proj.string.longlat))
+train.coords <- as.data.frame(train)
+
+urban.railway <- data.frame(
+  "company" = c(train.coords$etr_empres, subway$emt_empres),
+  "station" = c(toupper(train.coords$etr_nome), subway$emt_nome),
+  "lng" = c(train.coords$coords.x1, subway.coords$coords.x1),
+  "lat" = c(train.coords$coords.x2, subway.coords$coords.x2)
+)
+
+urban.railway <- urban.railway[!duplicated(urban.railway),]
+
+railwayIcons <- iconList(
+  "METRO" = makeIcon("./metro.jpg", "./metro.jpg", 18, 18),
+  "CPTM"  = makeIcon("./cptm.png", "./cptm.png", 18, 18),
+  "VIAQUATRO" = makeIcon("./metro.jpg", "./metro.jpg", 18, 18)
+)
+
+station.influence <- function(station, location) {
+  dist <- distHaversine(station, location)
+  exp(-0.5*(dist/400)^2)
+}
+
+railway.score = numeric(nrow(districts.utm@data))
+names(railway.score) <- districts.utm$ds_codigo
+
+for(d in districts.longlat@data$ds_codigo) {
+  
+  district.sp = districts.spdf.utm[districts.utm$ds_codigo == d,]
+  mapgrid <- SpatialPoints(makegrid(district.sp, cellsize = 100), proj4string = CRS(proj.string.utm))
+  mapgrid <- mapgrid[!is.na(mapgrid %over% district.sp)]
+  mapgrid <- spTransform(mapgrid, CRS(proj.string.longlat))
+  
+  inf.map <- matrix(nrow = length(mapgrid), ncol = nrow(urban.railway))
+  for(s in 1:ncol(inf.map)) {
+    inf.map[,s] <- station.influence(urban.railway[s,3:4], mapgrid@coords)
+  }
+  railway.score[d] = mean(apply(inf.map, 1, FUN=max))
+}
+
+railway.score <- score.scaling(log(1+railway.score))
+
+railway.score <- data.table("ds_codigo" = districts.longlat$ds_codigo,
+                            "ds_nome" = districts.longlat$ds_nome,
+                            "railway" = railway.score,
+                            "railway_color" = sapply(railway.score, color.scale.func))
+```
+
+```{r}
+basemap <- leaflet(urban.railway, width = "100%") %>%
+  addMarkers(lng = ~lng, lat = ~lat, icon = ~railwayIcons[company]) %>%
+  addTiles()
+
+for(d in districts.list) {
+  fillcolor <- color.scale.func(railway.score$railway[railway.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     color = "white",
+                                     opacity = 1,
+                                     weight = 2,
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+```{r export.metro.shapefile, echo=FALSE}
+unlink("./metro-sp/", recursive = T)
+unlink("./cptm-sp/", recursive = T)
+
+writeOGR(obj=subway, dsn="./metro-sp/", layer="metro", driver="ESRI Shapefile")
+writeOGR(obj=train, dsn="./cptm-sp/", layer="cptm", driver="ESRI Shapefile")
+
+write.csv(railway.score, "./railway-score.csv", row.names = FALSE)
+```
+
+### Linhas de ônibus
+
+O segundo critério de mobilidade dos distritos envolve a distribuição das linhas de ônibus acessíveis. Para este critério, contabilizamos o número de linhas que cruzam o distrito, ponderadas pela proporção dos veículos adaptados para a acessibilidade pessoas com dificuldades de locomoção.
+
+O mapa abaixo, ilustra os resultados obtidos:
+
+```{r}
+bus <- read.csv("../python/data/bus_lines_scores.csv")
+
+max.bus.score <- max(bus$score)
+min.bus.score <- min(bus$score)
+
+bus$score <- 10 * (bus$score - min.bus.score) / (max.bus.score - min.bus.score)
+
+bus.score <- data.table(
+  "ds_codigo" = bus$district_id,
+  "ds_nome" = bus$name,
+  "bus" = bus$score,
+  "bus_color" = sapply(bus$score, color.scale.func)
+)
+```
+
+```{r}
+basemap <- leaflet(width = "100%") %>% addTiles()
+
+for(d in districts.list) {
+  fillcolor <- color.scale.func(bus.score$bus[bus.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     color = "white",
+                                     opacity = 1,
+                                     weight = 2,
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+### Vagas reservadas
+
+Finalmente, a facilidade de utilização de transporte individual foi mensurada a partir da quantidade de vagas de estacionamento reservadas para pessoas com dificuldades de locomoção (idosos e usuários de cadeiras de rodas), normalizada pela área do distrito.
+
+```{r parking.data}
+parking <- read.csv("../python/data/vagas/vaga_district_scored.csv")
+
+max.parking.score <- max(parking$score)
+min.parking.score <- min(parking$score)
+
+parking$score <- 10 * (parking$score - min.parking.score) / (max.parking.score - min.parking.score)
+
+parking.score <- data.table(
+  "ds_codigo" = parking$district_id,
+  "ds_nome" = parking$district_name,
+  "parking" = parking$score,
+  "parking_color" = sapply(parking$score, color.scale.func)
+)
+```
+
+```{r}
+basemap <- leaflet(width = "100%") %>% addTiles()
+
+for(d in districts.list) {
+  fillcolor <- color.scale.func(parking.score$parking[parking.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     color = "white",
+                                     opacity = 1,
+                                     weight = 2,
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+## Topografia
+
+Evidentemente, declividades muito acentuadas dificultam bastante a locomoção dos usuários de cadeiras de rodas. Este eixo de avaliação considera somente as características topográficas dos distritos de São Paulo, que foram calculadas a partir dos dados disponibilizados no portal [Geosampa]().
+
+Os dados topográficos do município de São Paulo foram previamente divididos em 4 categorias:
+
+- Categoria 1: áreas com declividade de 0% a 5%.
+- Categoria 2: áreas com declividade de 5% a 25%. 
+- Categoria 3: áreas com declividade de 25% a 60%. 
+- Categoria 4: áreas com declividade maior que 60%.
+
+Desta forma, a nota de cada distrito foi definida como a média dos centros dos intervalos de cada categoria ponderada pela proporção da área de cada categoria, sobre a área total do distrito:
+
+$$ \frac{0*(Area1) + 5*(Area2) + 25*(Area3) + 60*(Area4)}{AreaTotal}  $$
+
+```{r topography, message=FALSE, warning=FALSE}
+declivity <- shapefile("./declivity/declivity.shp")
+declivity.spdf <- SpatialPolygonsDataFrame(declivity, data.frame(declivity=declivity@data$CODIGO), match.ID=F)
+
+intersections <- intersect(districts.spdf.utm, declivity.spdf)
+intersections$area <- area(intersections) / 1E6
+
+intersections.df <- as.data.table(aggregate(area ~ declivity + district, data=intersections, FUN=sum))
+topography <- reshape(intersections.df, idvar = "district", timevar = "declivity", direction = "wide")
+topography[is.na(topography)] <- 0
+topography$total_area = rowSums(topography[,2:5])
+
+relative.topography <- topography
+relative.topography[,2:5] <- relative.topography[,2:5] / relative.topography$total_area
+
+declivity.weights <- c(0, 5, 25, 60)
+
+relative.topography$final_score <- as.matrix(relative.topography[,2:5]) %*% declivity.weights
+
+topography.data <- merge(districts.utm@data[,c("ds_codigo", "ds_nome")],
+                         relative.topography,
+                         by.x = "ds_codigo",
+                         by.y = "district")
+
+topography.data$ds_codigo <- as.numeric(topography.data$ds_codigo)
+topography.data <- topography.data[order(topography.data$ds_codigo),]
+topography.data$classification <- order(order(topography.data$final_score))
+
+write.csv(topography.data, "topography-data.csv", row.names = F)
+```
+
+```{r}
+topography.data$topography <- score.scaling(topography.data$final_score, revert.scales = T)
+
+topogrogaphy.score <- data.table(
+  "ds_codigo" = topography.data$ds_codigo,
+  "ds_nome" = topography.data$ds_nome,
+  "topography" = topography.data$topography,
+  "topography_color" = sapply(topography.data$topography, color.scale.func)
+)
+```
+
+```{r topography.map, echo=FALSE}
+basemap <- leaflet(width = "100%") %>% addProviderTiles(providers$Stamen.Terrain)
+
+for(d in districts.list) {
+  fillcolor <- color.scale.func(topogrogaphy.score$topography[topogrogaphy.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     color = "white",
+                                     opacity = 1,
+                                     weight = 2,
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+# Resultados Finais
+
+Finalmente, calculamos a nota final do bairro como a média das notas em cada um dos eixos de avaliação. O mapa abaixo ilustra o resultado final.
+
+```{r}
+final.score <- merge(venues.score, railway.score[,2:4])
+final.score <- merge(final.score, bus.score[,2:4])
+final.score <- merge(final.score, parking.score[,2:4])
+final.score <- merge(final.score, topogrogaphy.score[,2:4])
+final.score$final_score <- as.numeric(as.matrix(final.score[,.(venues, railway, bus, parking, topography)]) %*% c(1, rep(1/3, 3), 1)/3)
+final.score$final_score_color <- sapply(final.score$final_score, color.scale.func)
+
+write.csv(final.score, "final-score.csv", row.names = F)
+```
+
+```{r final.score.map, echo=FALSE}
+basemap <- leaflet(width = "100%") %>% addTiles()
+
+for(d in districts.list) {
+  fillcolor <- color.scale.func(final.score$final_score[final.score$ds_nome == d$name])
+  basemap <- basemap %>% addPolygons(lng = d$polygon[,1],
+                                     lat = d$polygon[,2],
+                                     color = "white",
+                                     opacity = 1,
+                                     weight = 2,
+                                     fillColor = fillcolor,
+                                     fillOpacity = 0.7)
+}
+basemap
+```
+
+# Dashboard Interativo
+
+Os resultados dessa análise foram publicados em um [dashboard interativo](https://mac-cidades-inteligentes-2018.gitlab.io/projeto4/).
+
