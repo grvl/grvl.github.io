@@ -6,3 +6,5 @@ latex/
 # Ruby libs
 .bundle/
 vendor/
+
+\.ipynb_checkpoints/

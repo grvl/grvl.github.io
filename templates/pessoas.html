@@ -1,0 +1,50 @@
+<!doctype html>
+<title>Pesquisar endereço</title>
+<body style="background-color: #f3f3f3; font-family: \'Cantarell\', sans-serif;">
+  <center>
+    {% if name %}
+      <hr>
+      <h3>{{ name }}</h3>
+      <hr>
+      <style type="text/css">
+        .tg  {border-collapse:collapse;border-spacing:0;border:none;border-color:#999;}
+        .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#999;color:#444;background-color:#F7FDFA;}
+        .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#999;color:#fff;background-color:#26ADE4;}
+        .tg .tg-1syg{font-weight:bold;font-size:16px;border-color:inherit;text-align:center}
+        .tg .tg-yg9r{font-weight:bold;color:#34cdf9;font-size:14px;text-align:center;vertical-align:top}
+        .tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
+        .tg .tg-uys7{border-color:inherit;text-align:center}
+        </style>
+        <table class="tg">
+          <tr>
+            <th class="tg-1syg" colspan="7">Número de pessoas / famílias</th>
+          </tr>
+          <tr>
+            <th class="tg-uys7" colspan="7">As áreas coloridas representam as áreas que estão dentro do raio determinando. As cores representam a porcentagem da área de ponderação considerada, sendo verde 100%, amarelo 50%, vermelho 0%. As áreas em cinza não foram consideradas.</th>
+          </tr>
+          <tr>
+            <td class="tg-yg9r">Total de famílias</td>
+            <td class="tg-yg9r">Total de famílias com alguém com alguma dificuldade</td>
+            <td class="tg-yg9r">Total de famílias com alguém com dificuldade de enxergar</td>
+            <td class="tg-yg9r">Total de famílias com alguém com dificuldade de caminhar</td>
+            <td class="tg-yg9r">Total de famílias com alguém com dificuldade de ouvir</td>
+            <td class="tg-yg9r">Total de famílias com alguém com deficiência intelectual</td>
+            <td class="tg-yg9r">Beneficiários BPC</td>
+          </tr>
+          <tr>
+            <td class="tg-uys7">{{ total }}</td>
+            <td class="tg\-uys7">{{ dif }}</td>
+            <td class="tg\-uys7">{{ enx }}</td>
+            <td class="tg\-uys7">{{ cam }}</td>
+            <td class="tg\-uys7">{{ ouv }}</td>
+            <td class="tg\-uys7">{{ int }}</td>
+            <td class="tg\-uys7">{{ smped }}</td>
+          </tr>
+        </table>
+      <hr>
+      {{  map|safe }}
+    {% else %}
+    <h1> Endereço inválido. </h1>
+    {% endif %}
+  </center>
+</body>

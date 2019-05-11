@@ -1,0 +1,50 @@
+<!doctype html>
+<title>Pesquisar endereço</title>
+<body style="background-color: #f3f3f3; font-family: \'Cantarell\', sans-serif;">
+  <center>
+    {% if name %}
+      <hr>
+      <h3>{{ name }}</h3>
+      <hr>
+      {% if addresses %}
+      <h4> Ou você quis dizer algum desses endereços: </h4>
+      {% for add in addresses %}
+      <a href = '{{add.link}}'>{{add.address}}</a><br>
+      {% endfor %}
+      <hr>
+      {% endif %}
+      <style type="text/css">
+      .tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#999;}
+      .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#999;color:#444;background-color:#F7FDFA;}
+      .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#999;color:#fff;background-color:#26ADE4;}
+      .tg .tg-baqh{text-align:center;vertical-align:top}
+      .tg .tg-qv16{font-weight:bold;font-size:16px;text-align:center;vertical-align:top}
+      </style>
+      <table class="tg">
+        <tr>
+          <th class="tg-qv16" colspan="6">Legenda</th>
+        </tr>
+        <tr>
+          <td class="tg-baqh"><img src="static/bus.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">Ônibus</span><br><h5>As linhas de ônibus são representadas pelas linhas coloridas no mapa. A cor da linha representa a nota da linha, e a nota é dada proporcionalmente ao número de ônibus acessíveis na linha. Clique na linha para ver seu nome e nota. <br><b> 0% vermelho, 50% amarelo, 100% verde</b></h5></td>
+          <td class="tg-baqh"><img src="static/car.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">Zona Azul</span><br><h5>Cada pin representa vagas de zona azul reservadas para idosos ou pessoas com deficiência. Clique no pin para ver qual seu tipo e endereço.</h5></td>
+          <td class="tg-baqh"><img src="static/government.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">Selo de acessibilidade</span><br><h5>Cada pin representa um estabelecimento com o selo de acessibilidade da prefeitura. Clique no pin para ver seu nome.</h5></td>
+        </tr>
+        <tr>
+          <td class="tg-baqh"><img src="static/guiaderodas.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">Guiaderodas</span><br><h5>Cada pin com uma estrela representa um estabelecimento com nota no Guiaderodas. A cor do pin representa a nota do estabelecimento, sendo vermelho estabelecimentos com menos de 1.7, laranja estabelecimentos entre 1.7 e 3.6, e verde estabelecimentos com 3.6 ou mais. Clique no pin para ver seu nome e sua nota.</h5></td>
+          <td class="tg-baqh"><img src="static/subway.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">Metrô</span><br><h5>Cada pin representa uma estação de metrô acessível. Clique no pin para ver seu nome.</h5></td>
+          <td class="tg-baqh"><img src="static/train.png"></td>
+          <td class="tg-baqh"><span style = "font-weight:bold;color:#34cdf9;font-size:18px;text-align:center;vertical-align:top">CPTM</span><br><h5>Cada pin representa uma estação de CPTM acessível. Clique no pin para ver seu nome.</h5></td>
+        </tr>
+      </table>
+      <hr>
+      {{  map|safe }}
+    {% else %}
+    <h1> Endereço inválido. </h1>
+    {% endif %}
+  </center>
+</body>
